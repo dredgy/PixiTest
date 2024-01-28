@@ -1,0 +1,17 @@
+* {
+  padding: 0px;
+  margin: 0px;
+  z-index: 1;
+}
+
+canvas{
+  z-index: 1;
+}
+
+.red{
+  background: blue;
+  width: 100px;
+  height: 20px;
+  position: absolute;
+  z-index: 2;
+}
