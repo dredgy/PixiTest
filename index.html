@@ -7,9 +7,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + TS</title>
   </head>
-  <body>
+  <body id="body">
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
     <div id="my-element" class="red">dick dick dick</div>
+    <div id="my-element1" class="blue">Reverse dick dick dick</div>
+
+
+
+
   </body>
+
+  <template id="entityTemplate">
+    <div class="entity" id="templateEntityDiv">
+      <div class="entityHeader" id="templateEntityHeader"></div>
+      <div class="entityDescription" id="templateEntityDescription"> </div>
+      <div id="templateAttributeContainer"> </div>
+    </div>
+  </template>
+
+  <template id="attributeTemplate">
+    <div class="attribute" id="templateAttributeDiv">
+      <div class="attributeTitle" id="templateAttributeTitle"></div>
+      <div class="attributeValue" id="templateAttributeValue"></div>
+      <div class="attributeBar" id="templateAttributeProgress"><progress value="32" max="100"> 32% </progress></div>
+    </div>
+  </template>
+
+
 </html>
