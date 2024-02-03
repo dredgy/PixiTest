@@ -15,7 +15,7 @@ const viewport = new Viewport({
     screenHeight: window.innerHeight,
     worldWidth: 1000,
     worldHeight: 1000,
-    events: app.renderer.events
+    events: app.renderer.events,
 })
 
 // add the viewport to the stage
@@ -28,6 +28,7 @@ viewport
     .wheel()
     .decelerate({friction: 0.8})
 
+/*
 const newSquare = (x: number, y: number, color: PIXI.ColorSource):PIXI.Graphics => {
     const square = new PIXI.Graphics()
     square.beginFill(color)
@@ -37,35 +38,8 @@ const newSquare = (x: number, y: number, color: PIXI.ColorSource):PIXI.Graphics 
     viewport.addChild(square)
     return square;
 }
+*/
 
-let box2 =newSquare(50, 50, 0xFF0000)
-let box = newSquare(100, 100, 0x0000FF)
-
-const element = document.getElementById('my-element');
-const wrappedElement = new ElementWrapper(element);
-app.stage.addChild(wrappedElement);
-
-const element2 = document.getElementById('my-element1');
-const wrappedElement2 = new ElementWrapper(element2);
-app.stage.addChild(wrappedElement2);
-
-app.ticker.add((delta) => {
-    if(box.x < 1500){
-        box.x += 1}
-    else {
-        box.x = 1;
-    }
-
-    let t = viewport.toScreen(new PIXI.Point(box.x, box.y))
-    wrappedElement.x = t.x;
-    wrappedElement.y = t.y;
-
-    let p = viewport.toWorld(new PIXI.Point(wrappedElement2.x, wrappedElement2.y))
-    //box2.x=p.x;
-    //box2.y=p.y;
-
-    //wrappedElement2.x += 1;
-});
 
 
 
@@ -92,13 +66,21 @@ class Entity {
     name: string;
     description: string;
     attributes: Attribute[];
+    location:PIXI.Point;
+    wrappedElement:ElementWrapper;
     Div: HTMLElement;
 
-    constructor(id:number, name:string, description:string) {
+    constructor(id:number, name:string, description:string, wrap:ElementWrapper) {
         this.name = name;
         this.description = description;
         this.id = id;
         this.attributes = [];
+        this.location = viewport.center;
+        this.wrappedElement = wrap;
+        app.stage.addChild(this.wrappedElement);
+        this.wrappedElement.x = viewport.toScreen(this.location).x;
+        this.wrappedElement.y = viewport.toScreen(this.location).y;
+
     }
 
     createAttribute(newID:number,name:string, description: string, type:string, units:string, value:string):void{
@@ -119,6 +101,14 @@ class Relationship{
 
     }
 }
+function* indexGenerator():Generator<number>{
+    let index :number = 1;
+    while (true){
+        yield index;
+        index++;
+    }
+}
+
 
 
 //ProblemMap when isntantiated will track all entities, attributes and relationships.
@@ -126,77 +116,140 @@ class Relationship{
 class ProblemMap{
     Entities: Entity[];
     Relationships: Relationship[];
-    attributeCounter: number = 0; //Used to track the total numbnner of current attributes and assign an appropriate ID.
-
+    attributeCounter: IterableIterator<number>; //Used to track the total number of current attributes and assign an appropriate ID.
+    entityCounter: IterableIterator<number>; //Used to track the total number of entities and assign an appropriate ID.
     constructor() {
-        console.log("Problem Map Created");
+
         this.Entities = [];
         this.Relationships = [];
+        this.attributeCounter = indexGenerator();
+        this.entityCounter = indexGenerator();
     }
 
-    createEntity(EntityName:string, EntityDescription:string): void {
-        this.Entities.push(new Entity(this.Entities.length+1, EntityName, EntityDescription));
-        console.log(this.Entities)
+}
 
-        //Following code creates instantiates the entityTemplate in the DOM and renames the IDs as required
-        const container  = document.getElementById("body") as HTMLElement;
-        const template = document.getElementById("entityTemplate") as HTMLTemplateElement;
-        let clone = template.content.cloneNode(true) as HTMLElement;
-        clone.querySelector("div")!.id = "entity"+this.Entities.length;
-        clone.querySelector(".entityHeader")!.id = "entityHeader"+this.Entities.length;
-        clone.querySelector(".entityDescription")!.id = "entityDescription"+this.Entities.length;
-        clone.querySelector("#templateAttributeContainer")!.id = "AttributeContainer"+this.Entities.length;
+//createAttribute creates a new attribute on a particular entity object contained within problemMap by referencing
+//the id of the entity object. createAttribute also instantiates the attribute in the DOM
+function createAttribute( id:number, name:string, description: string, type:string, units:string, value:string){
+    //Create new Attribute on Entity by Entity id
+    const newID = problemMap.attributeCounter.next().value;
+    problemMap.Entities = problemMap.Entities.map(entity => {
+        if (entity.id == id)
+            entity.attributes.push(new Attribute(newID, name, description, type, units, value))
+        return entity
+    })
 
-        //Following code populates the template with data lol
-        clone.querySelector("#entityHeader"+this.Entities.length)!.innerHTML = EntityName;
-        clone.querySelector("#entityDescription"+this.Entities.length)!.innerHTML = EntityDescription;
+    //Following code creates instantiates the attributeTemplate in the DOM and renames the IDs as required
+    const container = document.querySelector<HTMLElement>(".entity[data-id='"+id+"']");
 
-        container.appendChild(clone);
-    }
+    const template = document.getElementById("attributeTemplate") as HTMLTemplateElement;
+    let clone = template.content.cloneNode(true) as HTMLElement;
+    clone.querySelector<HTMLElement>("div")!.dataset.id = newID;
+    clone.querySelector<HTMLElement>(".attributeTitle")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".attributeValue")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".attributeBar")!.dataset.id = newID.toString();
 
-    createAttribute(entityID:number, name:string, description: string, type:string, units:string, value:string): void {
-        this.attributeCounter++; //Increment to track assigned IDs
-        this.Entities[entityID].createAttribute(this.attributeCounter, name, description, type, units, value);
+    //Following code populates the template with data lol
+    clone.querySelector(".attributeTitle[data-id]")!.innerHTML = name;
+    clone.querySelector(".attributeValue[data-id]")!.innerHTML = value;
+
+    //appendes template as a child of container in the DOM
+    container!.appendChild(clone);
+}
+
+//createEntity creates a new entity in problemMap, instantiates it in the DOM and isntantiates a
+//wrappedElement (extension of PIXI.DisplayObject
+function createEntity(EntityName:string, EntityDescription:string):void{
+   //create new Entity on problemMap
+    const newID = problemMap.entityCounter.next().value;
 
 
-        //Following code creates instantiates the entityTemplate in the DOM and renames the IDs as required
-        const container  = document.getElementById("entity"+entityID) as HTMLElement;
-        const template = document.getElementById("attributeTemplate") as HTMLElement;
-        let clone = template.content.cloneNode(true) as HTMLElement;
-        clone.querySelector("div")!.id = "attribute"+this.attributeCounter;
-        clone.querySelector("#templateAttributeTitle")!.id = "attributeTitle"+this.attributeCounter;
-        clone.querySelector("#templateAttributeValue")!.id = "attributeValue"+this.attributeCounter;
-        clone.querySelector("#templateAttributeProgress")!.id = "attributeProgress"+this.attributeCounter;
+    //instantiates the entityTemplate in the DOM sets IDs
+    const container  = document.getElementById("body") as HTMLElement;
+    const template = document.getElementById("entityTemplate") as HTMLTemplateElement;
+    let clone = template.content.cloneNode(true) as HTMLElement;
+    clone.querySelector<HTMLElement>("div")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".entityHeader")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".entityDescription")!.dataset.id = newID.toString();
 
-        //Following code populates the template with data lol
-        clone.querySelector("#attributeTitle"+this.attributeCounter)!.innerHTML = name;
-        clone.querySelector("#attributeValue"+this.attributeCounter)!.innerHTML = value;
+    //populate the template with data
+    clone.querySelector(".entityHeader[data-id]")!.innerHTML = EntityName;
+    clone.querySelector(".entityDescription[data-id]")!.innerHTML = EntityDescription;
+    container.appendChild(clone);
 
-        container.appendChild(clone);
-    }
+    //Selects the newly appended element in the DOM, wraps it and creates pushes a new Entity.
+    const element = document.querySelector<HTMLElement>(".entity[data-id='"+newID+"']")
+    const wrappedElement = new ElementWrapper(element);
+    problemMap.Entities.push(new Entity(newID, EntityName, EntityDescription, wrappedElement));
+
 }
 
 const problemMap = new ProblemMap();
-problemMap.createEntity("dicks", "doubleDicks");
-problemMap.createEntity("dicks2", "doubleDicks2");
-problemMap.createEntity("dicks3", "doubleDicks3");
-problemMap.createEntity("dicks3", "doubleDicks3");
-problemMap.createAttribute(1, "Steve", "steves balls", "Hairy", "follicles", "12");
-problemMap.createAttribute(2, "Steve", "steves balls", "Hairy", "follicles", "12");
-problemMap.createAttribute(2, "Steve", "steves balls", "Hairy", "follicles", "12");
-problemMap.createAttribute(2, "Steve", "steves balls", "Hairy", "follicles", "12");
-problemMap.createAttribute(2, "Steve", "steves balls", "Hairy", "follicles", "12");
-problemMap.createAttribute(3, "Steve", "steves balls", "Hairy", "follicles", "12");
+createEntity("dicks", "doubleDicks");
+createEntity("dicks", "doubleDicks");
+createAttribute( 1, 4, "potato", "potatoes", "potata", "kg")
+createAttribute( 1, 5, "potato", "potatoes", "potata", "kg")
+createAttribute(1, "asdf", "potato", "potatoes", "potata", "kg")
+createAttribute( 2, "aaaa", "potato", "potatoes", "potata", "kg")
+createAttribute(2, 4, "potato", "potatoes", "potata", "kg")
+createAttribute(1, 4, "potato", "potatoes", "potata", "kg")
 
-/*
-const container = document.getElementById("container");
-const template = document.getElementById("template");
 
-function clickHandler(event) {
-    event.target.append(" — Clicked this div");
+function renderEntities() {
+    problemMap.Entities.forEach(entity => {
+        entity.wrappedElement.x = viewport.toScreen(entity.location).x;
+        entity.wrappedElement.y = viewport.toScreen(entity.location).y;
+        entity.wrappedElement.scale = new PIXI.Point(viewport.scale.x, viewport.scale.x);
+    })
 }
 
-const firstClone = template.content.cloneNode(true);
-firstClone.addEventListener("click", clickHandler);
-container.appendChild(firstClone);
-*/
+function randomWalk(){
+    problemMap.Entities.forEach(entity => {
+        entity.location.x += (Math.random()-0.5)*4;
+        entity.location.y += (Math.random()-0.5)*4;
+    })
+}
+
+//the below code makes mouse wheel zoom work on doms
+function wheelOnDiv(e){
+
+    if(e.target.localName != "canvas") {
+        viewport.plugins.wheel(e)
+    }
+}
+document.querySelector<HTMLElement>("body")!.addEventListener("wheel", wheelOnDiv);
+
+
+
+function dragDiv(e){
+    e.preventDefault()
+    let dragging = true;
+    if(e.target.className == "entityHeader"){
+
+        //code to find the object
+        let divID = problemMap.Entities.findIndex(item => item.id == e.target.dataset.id)
+        let screenLocation:PIXI.Point = viewport.toScreen(new PIXI.Point(problemMap.Entities[divID].location.x, problemMap.Entities[divID].location.y));
+        let cursorLocation:PIXI.Point = new PIXI.Point(e.clientX, e.clientY);
+        let offset:PIXI.Point = new PIXI.Point(cursorLocation.x-screenLocation.x, cursorLocation.y-screenLocation.y)
+
+        document.querySelector<HTMLElement>("body")!.addEventListener("pointerup", function(){
+            dragging = false;
+            console.log("release");
+        })
+        document.querySelector<HTMLElement>("body")!.addEventListener("pointermove", function(a){
+            if(dragging) {
+
+                problemMap.Entities[divID].location = viewport.toWorld(new PIXI.Point(a.clientX-offset.x, a.clientY-offset.y));
+            }
+        })
+    }
+}
+
+document.querySelector<HTMLElement>("body")!.addEventListener("pointerdown", dragDiv)
+
+app.ticker.add((delta) => {
+    renderEntities();
+    //randomWalk();
+
+
+});

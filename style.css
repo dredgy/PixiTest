@@ -9,9 +9,9 @@ canvas{
 }
 
 .entity{
-  position: relative;
-  left: 100px;
-  top: 100px;
+  position: absolute;
+  left: -400px;
+  top: -400px;
   min-width: 250px;
   max-width: 250px;
   min-height: 250px;
@@ -23,6 +23,8 @@ canvas{
   border-color: #D4D4D4;
   border-style: solid;
   border: 2px;
+  transform-origin: top left;
+  pointer-events: auto;
 }
 
 .entityHeader{
