@@ -27,18 +27,10 @@ viewport
     .pinch()
     .wheel()
     .decelerate({friction: 0.8})
-
-/*
-const newSquare = (x: number, y: number, color: PIXI.ColorSource):PIXI.Graphics => {
-    const square = new PIXI.Graphics()
-    square.beginFill(color)
-    square.drawRect(x, y, 50, 50)
-    square.endFill()
-    square.interactive = true
-    viewport.addChild(square)
-    return square;
-}
-*/
+    .clampZoom({
+        minScale: 0.25,
+        maxScale: 2
+    })
 
 
 
