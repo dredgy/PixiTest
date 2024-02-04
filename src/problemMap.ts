@@ -29,7 +29,6 @@ export class Entity {
     wrappedElement:ElementWrapper;
     Div: HTMLElement;
 
-
     constructor(problemMap:ProblemMap,id:number, name:string, description:string, wrap:ElementWrapper) {
         this.name = name;
         this.description = description;
@@ -40,9 +39,6 @@ export class Entity {
         problemMap.app.stage.addChild(this.wrappedElement);
         this.wrappedElement.x = problemMap.viewport.toScreen(this.location).x;
         this.wrappedElement.y = problemMap.viewport.toScreen(this.location).y;
-
-
-
     }
 
     createAttribute(newID:number,name:string, description: string, type:string, units:string, value:string):void{
@@ -58,7 +54,6 @@ class Relationship{
     nature: string;
     cause: number;
     effect: number;
-
     constructor(){
 
     }
@@ -70,8 +65,6 @@ function* indexGenerator():Generator<number>{
         index++;
     }
 }
-
-
 
 //ProblemMap when isntantiated will track all entities, attributes and relationships.
 //It is the primary means of creating and deleting entities, attributes and relationships
@@ -118,11 +111,8 @@ export class ProblemMap{
                 minScale: 0.25,
                 maxScale: 2
             })
-
     }
-
 }
-
 
 //createEntity creates a new entity in problemMap, instantiates it in the DOM and isntantiates a
 //wrappedElement (extension of PIXI.DisplayObject
@@ -186,4 +176,26 @@ export function renderEntities(problemMap:ProblemMap) {
         entity.wrappedElement.y = problemMap.viewport.toScreen(entity.location).y;
         entity.wrappedElement.scale = new PIXI.Point(problemMap.viewport.scale.x, problemMap.viewport.scale.x);
     })
+}
+export function dragEntity (e:Event, problemMap:ProblemMap){
+    e.preventDefault()
+    let dragging = true;
+    if(e.target!.className == "entityHeader"){
+
+        //code to find the object
+        // @ts-ignore
+        let divID = problemMap.Entities.findIndex(item => item.id == e.target.dataset.id)
+        let screenLocation:PIXI.Point = problemMap.viewport.toScreen(new PIXI.Point(problemMap.Entities[divID].location.x, problemMap.Entities[divID].location.y));
+        let cursorLocation:PIXI.Point = new PIXI.Point(e.clientX, e.clientY);
+        let offset:PIXI.Point = new PIXI.Point(cursorLocation.x-screenLocation.x, cursorLocation.y-screenLocation.y)
+
+        document.querySelector<HTMLElement>("body")!.addEventListener("pointerup", function(){
+            dragging = false;
+        })
+        document.querySelector<HTMLElement>("body")!.addEventListener("pointermove", function(a){
+            if(dragging) {
+                problemMap.Entities[divID].location = problemMap.viewport.toWorld(new PIXI.Point(a.clientX-offset.x, a.clientY-offset.y));
+            }
+        })
+    }
 }
