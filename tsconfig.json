@@ -12,7 +12,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-
+    "declaration": true,
+    "allowJs": true,
     /* Linting */
     "strict": false,
     "noUnusedLocals": false,

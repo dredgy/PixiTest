@@ -1,5 +1,5 @@
 import * as PIXI from "pixi.js";
-import ElementWrapper from "./element-wrapper";
+import ElementWrapper from "./element-wrapper.js";
 import {App} from "./main.ts";
 
 

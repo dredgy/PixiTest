@@ -1,7 +1,6 @@
 //Attribute   constructor(id:number, name: string, description: string, type:string, units:string, value:string) {
 import * as PIXI from "pixi.js";
-// @ts-ignore
-import ElementWrapper from "./element-wrapper";
+import ElementWrapper from "./element-wrapper.js";
 import {Graphics} from "pixi.js";
 import {Viewport} from "pixi-viewport";
 declare global {
