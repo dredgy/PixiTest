@@ -4,7 +4,7 @@ import {App} from "./main.ts";
 
 
 //createEntity creates a new entity in problemMap, instantiates it in the DOM and isntantiates a
-//wrappedElement (extension of PIXI.DisplayObject
+//wrappedElement (extension of PIXI.DisplayObject)
 export function createEntity(EntityName:string, EntityDescription:string, x? :number, y?: number):void{
     //create new Entity on problemMap
     const newID = App.problemMap.entityCounter.next().value;
