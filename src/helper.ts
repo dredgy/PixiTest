@@ -5,3 +5,10 @@ function randomWalk(problemMap:ProblemMap){
         entity.location.y += (Math.random()-0.5)*4;
     })
 }*/
+export function* indexGenerator():Generator<number>{
+    let index :number = 1;
+    while (true){
+        yield index;
+        index++;
+    }
+}

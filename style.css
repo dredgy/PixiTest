@@ -28,6 +28,7 @@ canvas{
 }
 
 .entityHeader{
+  cursor:pointer;
   background: #d4d4d4;
   border-top-right-radius: 10px;
   border-top-left-radius: 10px;
