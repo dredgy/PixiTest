@@ -7,6 +7,7 @@ declare global {
 
     export type State = {
         lines:lineDetails[]
+        tripleLines:tripleLine[]
         problemMap: ProblemMap
         PixiApp: PIXI.Application<HTMLCanvasElement>
         viewport: Viewport
@@ -16,6 +17,20 @@ declare global {
         FirstEntity: Entity
         SecondEntity: Entity
         Graphic: Graphics
+    }
+
+    export type tripleLine = {
+        Line1: Graphics
+        Line2: Graphics
+        Line3: Graphics
+        start: PIXI.Point
+        second: PIXI.Point
+        third: PIXI.Point
+        last: PIXI.Point
+        att1: Attribute
+        att1Connection: string
+        att2: Attribute
+        att2Connection: string
     }
 
     export type ProblemMap = {
