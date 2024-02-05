@@ -7,6 +7,7 @@
 canvas{
   z-index: 1;
 }
+html, body {margin: 0; height: 100%; overflow: hidden}
 
 .entity{
   position: absolute;
@@ -104,4 +105,42 @@ canvas{
   height: 20px;
   position: absolute;
   z-index: 2;
+}
+
+.verticalMenu{
+  position: absolute;
+  left: 30px;
+  top: 20%;
+  height: 600px;
+  width: 60px;
+  background: #F6F6F6;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  pointer-events: none;
+}
+
+.topLeft{
+  position: absolute;
+  left: 30px;
+  top: 30px;
+  height: 100px;
+  width: 40%;
+  background: #F6F6F6;
+  background-image: linear-gradient(to top, rgba(239, 239, 239, 0), rgba(226, 226, 226, 1) );
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  pointer-events: none;
+}
+
+.topRight{
+  position: absolute;
+  right: 30px;
+  top: 30px;
+  height: 100px;
+  width: 20%;
+  background: #F6F6F6;
+  background-image: linear-gradient(to top, rgba(239, 239, 239, 0), rgba(226, 226, 226, 1) );
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  pointer-events: none;
 }

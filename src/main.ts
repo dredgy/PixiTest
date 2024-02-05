@@ -40,7 +40,7 @@ const setupPage = () => {
     const app = new PIXI.Application<HTMLCanvasElement>({
         width: window.innerWidth,
         height: window.innerHeight,
-        backgroundColor: 0xAAAAAA, // Set the background color
+        backgroundColor: 0xDDDDDD, // Set the background color
     })
 
     const viewport = new Viewport({
