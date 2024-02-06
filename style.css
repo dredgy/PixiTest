@@ -26,6 +26,7 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   border: 2px;
   transform-origin: top left;
   pointer-events: auto;
+  padding-bottom: 10px;
 }
 
 .entityHeader{
@@ -47,8 +48,46 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   color: #5C5C5C;
 }
 
+.entityToolbar{
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  /*justify-content: space-evenly;*/
+  /*padding-top: 10px;*/
+}
+
+.deleteEntity{
+  flex: 1;
+  color: white;
+  background: #FF8282;
+  cursor: pointer;
+  min-width: 30%;
+  padding: 5px;
+  text-align: center;
+  font-family:Tahoma,Verdana,Segoe,sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  /*border-radius: 6px;*/
+  line-height: 100%;
+}
+.createAttribute{
+  flex: 1;
+  color: white;
+  background: #81DB6B;
+  cursor: pointer;
+  min-width: 30%;
+  padding: 5px;
+  text-align: center;
+  font-family:Tahoma,Verdana,Segoe,sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  /*border-radius: 6px;*/
+  height: 100%;
+}
+
 .attribute{
   background-image: linear-gradient(to bottom, rgba(239, 239, 239, 0), rgba(226, 226, 226, 1) );
+  position: relative;
 }
 
 .attributeTitle{
@@ -87,8 +126,35 @@ html, body {margin: 0; height: 100%; overflow: hidden}
 }
 
 .attributeBar progress[value]::-webkit-progress-value{
-  background-color: FF8686;
+  background-color: #FF8686;
   border-radius: 2px;
+}
+
+.attributeDelete{
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 15px;
+  height: 15px;
+  color: white;
+  background: #FF8282;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+}
+.attributeLink{
+  right: 5px;
+  top: 25px;
+  position: absolute;
+  width: 15px;
+  height: 15px;
+  color: white;
+  background: #81DB6B;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
 }
 
 .red{
@@ -117,6 +183,9 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   border-radius: 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   pointer-events: none;
+  border-color: #D4D4D4;
+  border-style: solid;
+  border: 2px;
 }
 
 .topLeft{
@@ -130,6 +199,9 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   border-radius: 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   pointer-events: none;
+  border-color: #D4D4D4;
+  border-style: solid;
+  border: 2px;
 }
 
 .topRight{
@@ -143,4 +215,26 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   border-radius: 10px;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   pointer-events: none;
+  border-color: #D4D4D4;
+  border-style: solid;
+  border: 2px;
 }
+
+.newEntityButton{
+  width: 100%;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  text-align: center;
+  line-height: 100%;
+  border-style: solid;
+  border-color: #5C5C5C;
+  border: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.newEntityButton:hover{
+  background: #DCDCDC;
+}
+

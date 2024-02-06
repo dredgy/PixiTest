@@ -2,9 +2,10 @@ import {
     createEntity,
     createAttribute,
     renderEntities,
-    dragEntity,
-    //drawLinePoints,
-    newTripleLine, renderTripleLines
+    clickUI,
+    editContent,
+
+    newTripleLine, renderTripleLines, stopEditContent
 } from "./problemMap.ts";
 import * as PIXI from "pixi.js";
 import {Viewport} from "pixi-viewport";
@@ -21,12 +22,12 @@ export let App : State = {
         Relationships: [],
         attributeCounter: Helper.indexGenerator(),
         entityCounter: Helper.indexGenerator(),
-    }
+    },
 }
 
 const setupEvents = () => {
     const body =  document.querySelector<HTMLElement>("body")
-    body!.addEventListener("pointerdown", dragEntity);
+    body!.addEventListener("pointerdown", clickUI);
 
     //the below code makes mouse wheel zoom work on doms
     body!.addEventListener("wheel", e => {
@@ -34,6 +35,10 @@ const setupEvents = () => {
             App.viewport.plugins.wheel(e)
         }
     })
+
+    body!.addEventListener("dblclick", editContent);
+    body!.addEventListener("focusout", stopEditContent);
+
 }
 
 const setupPage = () => {
@@ -41,6 +46,7 @@ const setupPage = () => {
         width: window.innerWidth,
         height: window.innerHeight,
         backgroundColor: 0xDDDDDD, // Set the background color
+        resizeTo: window
     })
 
     const viewport = new Viewport({
@@ -68,18 +74,31 @@ const setupPage = () => {
 }
 
 const createSampleEntities = () => {
-    createEntity("dicks", "doubleDicks", 500, 100);
-    createEntity("dicks", "doubleDicks", 100, 500);
-    createAttribute(1, '4', "potato", "potatoes", "potata", "kg")
-    createAttribute(1, '5', "potato", "potatoes", "potata", "kg")
-    createAttribute(1, "asdf", "potato", "potatoes", "potata", "kg")
-    createAttribute(2, "aaaa", "potato", "potatoes", "potata", "kg")
-    createAttribute(2, '4', "potato", "potatoes", "potata", "kg")
-    createAttribute(1, '4', "potato", "potatoes", "potata", "kg")
-    App.problemMap.Entities[0].location.x += 300;
-    App.problemMap.Entities[0].location.y += 300;
-    newTripleLine(App.problemMap.Entities[0].attributes[0], "left", App.problemMap.Entities[1].attributes[0], "left" )
-    newTripleLine(App.problemMap.Entities[0].attributes[1], "right", App.problemMap.Entities[1].attributes[1], "right" )
+    createEntity("Operations Team Workload", "The operations team’s workload fluctuates, delays to this work result in regulatory breaches and upset customers", 0, 0);
+    createEntity("Regulatory Position", "The overall profile of the organization from a regulatory perspective.", 0, 500);
+    createEntity("Organizational Culture", "The culture within the operations team.", 500, 0);
+    createAttribute(1, 'Tasks per person per day', "potato", "potatoes", "potata", "300 tasks")
+    createAttribute(1, 'Avg minutes per task', "potato", "potatoes", "potata", "5 minutes")
+    createAttribute(1, "Available staff", "potato", "potatoes", "potata", "25 staff")
+    createAttribute(1, "Task overdue", "potato", "potatoes", "potata", "89 tasks are overdue")
+    createAttribute(2, 'Reportable Breaches', "potato", "potatoes", "potata", "10 instances")
+    createAttribute(2, 'Major Reportable Breaches', "potato", "potatoes", "potata", "1")
+    createAttribute(2, 'Regulatory Risk', "potato", "potatoes", "potata", "Moderate")
+    createAttribute(3, 'Burnout Risk', "potato", "potatoes", "potata", "High (est 3 staff per week")
+    createAttribute(3, 'Discontentment', "potato", "potatoes", "potata", "High")
+    createAttribute(3, 'Motivation', "potato", "potatoes", "potata", "Low")
+    createAttribute(3, 'Affinity with leadership', "potato", "potatoes", "potata", "Moderate")
+
+    newTripleLine(App.problemMap.Entities[0].attributes[0], "left", App.problemMap.Entities[0].attributes[2], "left" )
+    newTripleLine(App.problemMap.Entities[0].attributes[0], "right", App.problemMap.Entities[2].attributes[0], "right" )
+    newTripleLine(App.problemMap.Entities[0].attributes[3], "right", App.problemMap.Entities[2].attributes[0], "left" )
+
+    App.problemMap.Entities[0].location.x += 500;
+    App.problemMap.Entities[1].location.y += 500;
+    App.problemMap.Entities[2].location.x += 500;
+    App.problemMap.Entities[2].location.y += 500;
+
+
 }
 
 /**
@@ -89,56 +108,20 @@ const main = () => {
     setupEvents()
     setupPage()
     createSampleEntities()
+
+    console.log(App)
+
     renderTripleLines()
-    App.PixiApp.ticker.add(_ => {
+    let k = 0;
+    App.PixiApp.ticker.add(n => {
         renderEntities();
-
-
-        //randomWalk();
+        k++;
+        if(k == 2){
+            renderTripleLines()
+        }
     });
 }
 
-function lineBetween(id1:number, id2:number){
-
-    let att1 = document.querySelector<HTMLElement>('.attribute[data-id="'+id1+'"]')
-    let att2 = document.querySelector<HTMLElement>('.attribute[data-id="'+id2+'"]')
-
-    //get screen coordinates of attribute 1
-    let att1PositionX = att1.getBoundingClientRect().x;
-    let att1PositionY = att1.getBoundingClientRect().y;
-
-    //calculate the offset of attribute 1.
-    let att1OffsetY = att1.offsetHeight/2*App.viewport.scale.y; //scaling by viewport is required as css transform doesn't change the actual offsets
-    let att1OffsetX = att1.offsetWidth*App.viewport.scale.x;
-
-    //create a PIXI.Point that represents the connection of the doo dad
-    let att1Pixi = new PIXI.Point(att1PositionX+att1OffsetX, att1PositionY+att1OffsetY);
-
-    let att2PositionX = att2.getBoundingClientRect().x;
-    let att2Positiony = att2.getBoundingClientRect().y;
-    let att2OffsetY = att2.offsetHeight/2*App.viewport.scale.y;
-    let att2OffsetX = att2.offsetWidth*App.viewport.scale.x;
-    let att2Pixi = new PIXI.Point(att2PositionX+att2OffsetX, att2Positiony+att2OffsetY);
-
-    // total x and y distance to be covered
-    let relCoordX = att2Pixi.x - att1Pixi.x;
-    let relCoordy = att2Pixi.y - att1Pixi.y;
-
-    //Split total x distance into two 30% along line
-    let legX1 = relCoordX*0.3;
-    let legX2 = relCoordX*0.7;
-
-    let startPoint = att1Pixi;
-    let firstPoint = new PIXI.Point(att1Pixi.x+legX1, att1Pixi.y);
-    let secondPoint = new PIXI.Point(att1Pixi.x+legX1, att1Pixi.y+relCoordy);
-    let thirdPoint = att2Pixi;
-
-
-    drawLinePoints(App.viewport.toWorld(startPoint), App.viewport.toWorld(firstPoint));
-    drawLinePoints(App.viewport.toWorld(firstPoint), App.viewport.toWorld(secondPoint))
-    drawLinePoints(App.viewport.toWorld(secondPoint), App.viewport.toWorld(thirdPoint));
-
-}
 
 
 document.addEventListener('DOMContentLoaded', main)

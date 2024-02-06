@@ -18,7 +18,9 @@ export function createEntity(EntityName:string, EntityDescription:string, x? :nu
     clone.querySelector<HTMLElement>("div")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".entityHeader")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".entityDescription")!.dataset.id = newID.toString();
-
+    clone.querySelector<HTMLElement>(".deleteEntity")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".attributeContainer")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".createAttribute")!.dataset.id = newID.toString();
     //populate the template with data
     clone.querySelector(".entityHeader[data-id]")!.innerHTML = EntityName;
     clone.querySelector(".entityDescription[data-id]")!.innerHTML = EntityDescription;
@@ -39,6 +41,19 @@ export function createEntity(EntityName:string, EntityDescription:string, x? :nu
 
 }
 
+export function deleteEntity(entity_id:number){
+    let container  = document.querySelector(".entity[data-id='"+entity_id+"']") as HTMLElement;
+    container.replaceChildren();
+    container.remove();
+}
+
+export function deleteAttribute(attribute_id:number){
+    let container  = document.querySelector(".attribute[data-id='"+attribute_id+"']") as HTMLElement;
+    container.replaceChildren();
+    container.remove();
+}
+
+
 //createAttribute creates a new attribute on a particular entity object contained within problemMap by referencing
 //the id of the entity object. createAttribute also instantiates the attribute in the DOM
 export function createAttribute(entity_id:number, name:string, description: string, type:string, units:string, value:string){
@@ -51,7 +66,7 @@ export function createAttribute(entity_id:number, name:string, description: stri
     })
 
     //Following code creates instantiates the attributeTemplate in the DOM and renames the IDs as required
-    const container = document.querySelector<HTMLElement>(".entity[data-id='"+entity_id+"']");
+    const container = document.querySelector<HTMLElement>(".attributeContainer[data-id='"+entity_id+"']");
 
     const template = document.getElementById("attributeTemplate") as HTMLTemplateElement;
     let clone = template.content.cloneNode(true) as HTMLElement;
@@ -59,6 +74,8 @@ export function createAttribute(entity_id:number, name:string, description: stri
     clone.querySelector<HTMLElement>(".attributeTitle")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".attributeValue")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".attributeBar")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".attributeDelete")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".attributeLink")!.dataset.id = newID.toString();
 
     //Following code populates the template with data lol
     clone.querySelector(".attributeTitle[data-id]")!.innerHTML = name;
@@ -120,8 +137,6 @@ export function renderTripleLines() {
 
     //update points
     App.tripleLines.forEach(function(tl) {
-
-
         let att1 = document.querySelector<HTMLElement>('.attribute[data-id="' + tl.att1.id + '"]')
         let att2 = document.querySelector<HTMLElement>('.attribute[data-id="' + tl.att2.id + '"]')
 
@@ -149,7 +164,7 @@ export function renderTripleLines() {
         let legX1 = relCoordX * 0.3;
         //Split total x distance into two 30% along line
         if(tl.att2Connection == tl.att1Connection){
-            legX1 = tl.att1Connection == "right" ? 75 : -75;
+            legX1 = tl.att1Connection == "right" ? 50 : -50;
         }
 
         tl.start = App.viewport.toWorld(att1Pixi);
@@ -166,17 +181,17 @@ export function renderTripleLines() {
         tl.Line3.clear();
 
 
-        tl.Line1.lineStyle(4, 0x0000FF);
+        tl.Line1.lineStyle(10, 0xCE91FF);
         tl.Line1.moveTo(tl.start.x, tl.start.y);
         tl.Line1.lineTo(tl.second.x, tl.second.y);
 
 
-        tl.Line2.lineStyle(4, 0x0000FF);
+        tl.Line2.lineStyle(10, 0xCE91FF);
         tl.Line2.moveTo(tl.second.x, tl.second.y);
         tl.Line2.lineTo(tl.third.x, tl.third.y);
 
 
-        tl.Line3.lineStyle(4, 0x0000FF);
+        tl.Line3.lineStyle(10, 0xCE91FF);
         tl.Line3.moveTo(tl.third.x, tl.third.y);
         tl.Line3.lineTo(tl.last.x, tl.last.y);
 
@@ -186,26 +201,112 @@ export function renderTripleLines() {
     })
 }
 
+function getAttributeByID(id:number):Attribute{
+    let att1 = null
+    App.problemMap.Entities.forEach(function(ent){
+        ent.attributes.forEach(function(att){
+            if(att.id == id){
+                att1 = att;
+            }
 
-export function dragEntity (e:PointerEvent){
-    e.preventDefault()
-    let dragging = true;
-    if((<Element>e.target)!.className == "entityHeader"){
-
-        //code to find the object
-        let divID = App.problemMap.Entities.findIndex(item => item.id.toString() == (<HTMLElement>e.target).dataset.id)
-        let screenLocation:PIXI.Point = App.viewport.toScreen(new PIXI.Point(App.problemMap.Entities[divID].location.x, App.problemMap.Entities[divID].location.y));
-        let cursorLocation:PIXI.Point = new PIXI.Point(e.clientX, e.clientY);
-        let offset:PIXI.Point = new PIXI.Point(cursorLocation.x-screenLocation.x, cursorLocation.y-screenLocation.y)
-
-        document.querySelector<HTMLElement>("body")!.addEventListener("pointerup", function(){
-            dragging = false;
         })
-        document.querySelector<HTMLElement>("body")!.addEventListener("pointermove", function(a){
-            if(dragging) {
-                App.problemMap.Entities[divID].location = App.viewport.toWorld(new PIXI.Point(a.clientX-offset.x, a.clientY-offset.y));
+
+    })
+    return att1;
+}
+
+
+export function clickUI (e:PointerEvent) {
+    switch ((<Element>e.target)!.className) {
+        case "entityHeader": {
+            e.preventDefault()
+            let dragging = true;
+            //code to find the object
+            let divID = App.problemMap.Entities.findIndex(item => item.id.toString() == (<HTMLElement>e.target).dataset.id)
+            let screenLocation: PIXI.Point = App.viewport.toScreen(new PIXI.Point(App.problemMap.Entities[divID].location.x, App.problemMap.Entities[divID].location.y));
+            let cursorLocation: PIXI.Point = new PIXI.Point(e.clientX, e.clientY);
+            let offset: PIXI.Point = new PIXI.Point(cursorLocation.x - screenLocation.x, cursorLocation.y - screenLocation.y)
+
+            document.querySelector<HTMLElement>("body")!.addEventListener("pointerup", function () {
+                dragging = false;
+            })
+            document.querySelector<HTMLElement>("body")!.addEventListener("pointermove", function (a) {
+                if (dragging) {
+                    App.problemMap.Entities[divID].location = App.viewport.toWorld(new PIXI.Point(a.clientX - offset.x, a.clientY - offset.y));
+                    renderTripleLines()
+                }
+            })
+            break;
+        }
+        case "newEntityButton":{
+            createEntity("lol", "lol");
+            break;
+        }
+        case "deleteEntity":{
+            console.log("Delete " + (<HTMLElement>e.target).dataset.id);
+            deleteEntity((<HTMLElement>e.target).dataset.id as unknown as number)
+            break;
+        }
+        case "createAttribute":{
+            console.log("Create entity in " +(<HTMLElement>e.target).dataset.id)
+            createAttribute((<HTMLElement>e.target).dataset.id as unknown as number, '4', "potato", "potatoes", "potata", "kg")
+            break;
+        }
+        case "attributeDelete":{
+            deleteAttribute((<HTMLElement>e.target).dataset.id as unknown as number);
+            break;
+        }
+
+        case "attributeLink":{
+
+            e.preventDefault()
+            let dragging = true;
+            let initialLocation: PIXI.Point = App.viewport.toWorld(new PIXI.Point(e.clientX, e.clientY));
+            let line = new PIXI.Graphics;
+            let att1:HTMLElement = (<HTMLElement>e.target)
+
+            //This code was designed to make josh cry.
+            const releaseLine = (f:Event) => {
+                dragging = false;
+                line.clear();
+                let att2 :HTMLElement = (<HTMLElement>f.target)
+                newTripleLine(getAttributeByID((<number><unknown>att1.dataset.id)), "right", getAttributeByID((<number><unknown>att2.dataset.id)), "right" )
+                console.log(releaseLine);
+                document.querySelectorAll<HTMLElement>(".attribute").forEach(e => e.style.background = "initial")
+                document.querySelector<HTMLElement>("body").removeEventListener("pointerup", releaseLine)
                 renderTripleLines()
             }
-        })
+
+          document.querySelector<HTMLElement>("body")!.addEventListener("pointerup", releaseLine);
+
+            document.querySelector<HTMLElement>("body")!.addEventListener("pointermove", function (a) {
+                if (dragging) {
+                    let cursor:PIXI.Point = App.viewport.toWorld(new PIXI.Point(a.clientX, a.clientY));
+                    line.clear();
+                    line.lineStyle(2, 0x999999);
+                    line.moveTo(initialLocation.x, initialLocation.y);
+                    line.lineTo(cursor.x, cursor.y)
+                    App.viewport.addChild(line);
+                    let hover = (<HTMLElement>a.target);
+                    let hoverAttribute:HTMLElement = document.querySelector(`.attribute[data-id="${hover.dataset.id}"]`)
+                    if(hover.className.includes("attribute")) {
+                        document.querySelectorAll<HTMLElement>(".attribute").forEach(e => e.style.background = "initial")
+                        hoverAttribute.style.background = "linear-gradient(to bottom, rgba(201, 229, 255, 1), rgba(143, 201, 255, 1) )";
+                    }
+                }
+            })
+            break;
+        }
     }
+}
+
+export function editContent(e:Event){
+    let divToEdit = (<HTMLElement>e.target);
+    divToEdit.contentEditable = "true";
+}
+
+export function stopEditContent(e:Event){
+    console.log("scream")
+    let divToEdit = (<HTMLElement>e.target);
+    divToEdit.contentEditable = "false";
 }

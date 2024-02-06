@@ -8,7 +8,7 @@
     <title>Tirixus</title>
   </head>
   <body id="body">
-    <div class = "verticalMenu"> toolbox</div>
+    <div class = "verticalMenu"> <div class="newEntityButton">+</div></div>
     <div class = "topLeft"> Details about the problem. Its name, who owns it, save buttons and such, back to main menu</div>
     <div class = "topRight">configurations and settings, darkmode, collaboraiton features etc</div>
     <div id="app"></div>
@@ -24,7 +24,11 @@
     <div class="entity">
       <div class="entityHeader"></div>
       <div class="entityDescription"> </div>
-      <div class="templateAttributeContainer"> </div>
+      <div class="attributeContainer"></div>
+      <div class="entityToolbar">
+        <div class="deleteEntity">Delete Entity</div>
+        <div class="createAttribute">Create Attribute</div>
+      </div>
     </div>
   </template>
 
@@ -32,6 +36,8 @@
     <div class="attribute">
       <div class="attributeTitle"></div>
       <div class="attributeValue"></div>
+      <div class="attributeDelete">X</div>
+      <div class="attributeLink">@</div>
       <div class="attributeBar"><progress value="32" max="100"> 32% </progress></div>
     </div>
   </template>
