@@ -1,8 +1,7 @@
 import * as PIXI from "pixi.js";
+import {Graphics, LINE_CAP, Point} from "pixi.js";
 import ElementWrapper from "./element-wrapper.js";
 import {App} from "./main.ts";
-import {Attribute, tripleLine} from "./types.ts";
-import {Graphics, Point} from "pixi.js";
 
 
 //createEntity creates a new entity in problemMap, instantiates it in the DOM and isntantiates a
@@ -180,18 +179,23 @@ export function renderTripleLines() {
         tl.Line2.clear();
         tl.Line3.clear();
 
+        const lineStyleOptions = {
+            width: 10,
+            color:0xCE91FF,
+            cap: LINE_CAP.ROUND
+        }
 
-        tl.Line1.lineStyle(10, 0xCE91FF);
+        tl.Line1.lineStyle(lineStyleOptions);
         tl.Line1.moveTo(tl.start.x, tl.start.y);
         tl.Line1.lineTo(tl.second.x, tl.second.y);
 
 
-        tl.Line2.lineStyle(10, 0xCE91FF);
+        tl.Line2.lineStyle(lineStyleOptions);
         tl.Line2.moveTo(tl.second.x, tl.second.y);
         tl.Line2.lineTo(tl.third.x, tl.third.y);
 
 
-        tl.Line3.lineStyle(10, 0xCE91FF);
+        tl.Line3.lineStyle(lineStyleOptions);
         tl.Line3.moveTo(tl.third.x, tl.third.y);
         tl.Line3.lineTo(tl.last.x, tl.last.y);
 

@@ -109,7 +109,6 @@ const main = () => {
     setupPage()
     createSampleEntities()
 
-    console.log(App)
 
     renderTripleLines()
     let k = 0;
