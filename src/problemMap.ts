@@ -61,7 +61,7 @@ export function createAttribute(entity_id:number, name:string, description: stri
     const newID = App.problemMap.attributeCounter.next().value;
     App.problemMap.Entities = App.problemMap.Entities.map(entity => {
         if (entity.id == entity_id)
-            entity.attributes.push({id: newID, name: name, description: description, type: type, units: units, value: value})
+            entity.attributes.push({id: newID, name: name, description: description, type: type, units: units, value: value, relationshipSlotAllocation: []})
         return entity
     })
 
@@ -176,7 +176,7 @@ export function clickUI (e:PointerEvent) {
                 line.clear();
                 let att2 :HTMLElement = (<HTMLElement>f.target)
                 //newTripleLine(getAttributeByID((<number><unknown>att1.dataset.id)), "right", getAttributeByID((<number><unknown>att2.dataset.id)), "right" )
-                console.log("You need to create new relationships now loser")
+                createRelationship("lol", "lol", "lol", parseInt(att1.dataset.id), parseInt(att2.dataset.id), 1, 1)
                 document.querySelectorAll<HTMLElement>(".attribute").forEach(e => e.style.background = "initial")
                 document.querySelector<HTMLElement>("body").removeEventListener("pointerup", releaseLine)
                 renderRelationships()
