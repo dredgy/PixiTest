@@ -3,9 +3,10 @@ import {
     createAttribute,
     renderEntities,
     clickUI,
-    editContent,
-
-    newTripleLine, renderTripleLines, stopEditContent
+    lineMove,
+    stopEditContent,
+    renderRelationships,
+    createRelationship, lineRelease
 } from "./problemMap.ts";
 import * as PIXI from "pixi.js";
 import {Viewport} from "pixi-viewport";
@@ -15,13 +16,14 @@ import * as Helper from "./helper.ts"
 export let App : State = {
     PixiApp: null,
     viewport: null,
-    lines: [],
-    tripleLines: [],
+    moveLine: false,
+    moveLineTarget: null,
     problemMap: {
         Entities: [],
         Relationships: [],
         attributeCounter: Helper.indexGenerator(),
         entityCounter: Helper.indexGenerator(),
+        relationshipCounter: Helper.indexGenerator(),
     },
 }
 
@@ -36,9 +38,7 @@ const setupEvents = () => {
         }
     })
 
-    body!.addEventListener("dblclick", editContent);
-    body!.addEventListener("focusout", stopEditContent);
-
+    body!.addEventListener("pointermove", lineMove);
 }
 
 const setupPage = () => {
@@ -55,6 +55,7 @@ const setupPage = () => {
         worldWidth: 1000,
         worldHeight: 1000,
         events: app.renderer.events,
+        disableOnContextMenu: true,
     })
 
     document.body.appendChild(app.view)
@@ -89,14 +90,16 @@ const createSampleEntities = () => {
     createAttribute(3, 'Motivation', "potato", "potatoes", "potata", "Low")
     createAttribute(3, 'Affinity with leadership', "potato", "potatoes", "potata", "Moderate")
 
-    newTripleLine(App.problemMap.Entities[0].attributes[0], "left", App.problemMap.Entities[0].attributes[2], "left" )
-    newTripleLine(App.problemMap.Entities[0].attributes[0], "right", App.problemMap.Entities[2].attributes[0], "right" )
-    newTripleLine(App.problemMap.Entities[0].attributes[3], "right", App.problemMap.Entities[2].attributes[0], "left" )
 
     App.problemMap.Entities[0].location.x += 500;
     App.problemMap.Entities[1].location.y += 500;
     App.problemMap.Entities[2].location.x += 500;
     App.problemMap.Entities[2].location.y += 500;
+
+    createRelationship("first", "the first relationship", "cause", 2, 4, 1, 2);
+    createRelationship("first", "the first relationship", "cause", 2, 8, 1, 4);
+    createRelationship("first", "the first relationship", "cause", 5, 2, 1, 3);
+    createRelationship("first", "the first relationship", "cause", 3, 11, 2, 2);
 
 
 }
@@ -110,14 +113,10 @@ const main = () => {
     createSampleEntities()
 
 
-    renderTripleLines()
-    let k = 0;
     App.PixiApp.ticker.add(n => {
         renderEntities();
-        k++;
-        if(k == 2){
-            renderTripleLines()
-        }
+
+        renderRelationships();
     });
 }
 

@@ -4,6 +4,7 @@ import ElementWrapper from "./element-wrapper.js";
 import {App} from "./main.ts";
 
 
+
 //createEntity creates a new entity in problemMap, instantiates it in the DOM and isntantiates a
 //wrappedElement (extension of PIXI.DisplayObject)
 export function createEntity(EntityName:string, EntityDescription:string, x? :number, y?: number):void{
@@ -92,118 +93,9 @@ export function renderEntities() {
     })
 }
 
-export function drawLine(problemMap: ProblemMap, FirstEntity : Entity, SecondEntity : Entity) {
-    const startPoint = {x: FirstEntity.location.x, y: FirstEntity.location.y};
-    const endPoint = {x: SecondEntity.location.x, y: SecondEntity.location.y};
 
-    const line = App.lines.length
-        ? App.lines[0].Graphic.clear()
-        : new PIXI.Graphics();
+function isOdd(num) { return num % 2;}
 
-    // Draw the path
-    line.lineStyle(2, 0x000000); // Line color and thickness
-    line.moveTo(startPoint.x, startPoint.y); // Move to the starting point
-    line.lineTo(endPoint.x, endPoint.y);   // Draw a line to the ending point
-    line.quadraticCurveTo(startPoint.x, startPoint.y, endPoint.x, endPoint.y);
-    App.viewport.addChild(line)
-
-    App.lines[0] = {
-        FirstEntity: FirstEntity,
-        SecondEntity: SecondEntity,
-        Graphic: line
-    }
-}
-
-export function newTripleLine(att1:Attribute, att1Conn:string, att2:Attribute, att2Conn:string){
-
-    const push1:tripleLine = {
-        Line1: new Graphics(),
-        Line2: new Graphics(),
-        Line3: new Graphics(),
-        start: new Point(),
-        second: new Point(),
-        third: new Point(),
-        last: new Point(),
-        att1: att1,
-        att2: att2,
-        att1Connection:att1Conn,
-        att2Connection:att2Conn
-    }
-    App.tripleLines.push(push1)
-}
-
-export function renderTripleLines() {
-
-    //update points
-    App.tripleLines.forEach(function(tl) {
-        let att1 = document.querySelector<HTMLElement>('.attribute[data-id="' + tl.att1.id + '"]')
-        let att2 = document.querySelector<HTMLElement>('.attribute[data-id="' + tl.att2.id + '"]')
-
-        //get screen coordinates of attribute 1
-        let att1PositionX = att1.getBoundingClientRect().x;
-        let att1PositionY = att1.getBoundingClientRect().y;
-
-        //calculate the offset of attribute 1.
-        let att1OffsetY = att1.offsetHeight / 2 * App.viewport.scale.y; //scaling by viewport is required as css transform doesn't change the actual offsets
-        let att1OffsetX = tl.att1Connection == "right" ? att1.offsetWidth * App.viewport.scale.x : 0;
-
-        //create a PIXI.Point that represents the connection of the doo dad
-        let att1Pixi = new PIXI.Point(att1PositionX + att1OffsetX, att1PositionY + att1OffsetY);
-
-        let att2PositionX = att2.getBoundingClientRect().x;
-        let att2Positiony = att2.getBoundingClientRect().y;
-        let att2OffsetY = att2.offsetHeight / 2 * App.viewport.scale.y;
-        let att2OffsetX = tl.att2Connection == "right" ? att2.offsetWidth * App.viewport.scale.x : 0;
-        let att2Pixi = new PIXI.Point(att2PositionX + att2OffsetX, att2Positiony + att2OffsetY);
-
-        // total x and y distance to be covered
-        let relCoordX = att2Pixi.x - att1Pixi.x;
-        let relCoordy = att2Pixi.y - att1Pixi.y;
-
-        let legX1 = relCoordX * 0.3;
-        //Split total x distance into two 30% along line
-        if(tl.att2Connection == tl.att1Connection){
-            legX1 = tl.att1Connection == "right" ? 50 : -50;
-        }
-
-        tl.start = App.viewport.toWorld(att1Pixi);
-        tl.second = App.viewport.toWorld(new PIXI.Point(att1Pixi.x+legX1, att1Pixi.y));
-        tl.third = App.viewport.toWorld(new PIXI.Point(att1Pixi.x+legX1, att1Pixi.y+relCoordy));
-        tl.last = App.viewport.toWorld(att2Pixi);
-    })
-
-
-    //clear and render lines from points
-    App.tripleLines.forEach(function(tl){
-        tl.Line1.clear();
-        tl.Line2.clear();
-        tl.Line3.clear();
-
-        const lineStyleOptions = {
-            width: 10,
-            color:0xCE91FF,
-            cap: LINE_CAP.ROUND
-        }
-
-        tl.Line1.lineStyle(lineStyleOptions);
-        tl.Line1.moveTo(tl.start.x, tl.start.y);
-        tl.Line1.lineTo(tl.second.x, tl.second.y);
-
-
-        tl.Line2.lineStyle(lineStyleOptions);
-        tl.Line2.moveTo(tl.second.x, tl.second.y);
-        tl.Line2.lineTo(tl.third.x, tl.third.y);
-
-
-        tl.Line3.lineStyle(lineStyleOptions);
-        tl.Line3.moveTo(tl.third.x, tl.third.y);
-        tl.Line3.lineTo(tl.last.x, tl.last.y);
-
-        App.viewport.addChild(tl.Line1);
-        App.viewport.addChild(tl.Line2);
-        App.viewport.addChild(tl.Line3);
-    })
-}
 
 function getAttributeByID(id:number):Attribute{
     let att1 = null
@@ -212,11 +104,20 @@ function getAttributeByID(id:number):Attribute{
             if(att.id == id){
                 att1 = att;
             }
-
         })
 
     })
     return att1;
+}
+
+function getRelationshipById(id:number){
+    let relationship = null;
+    App.problemMap.Relationships.forEach(function(rel){
+        if(rel.id == id){
+            relationship = rel;
+        }
+    })
+    return relationship
 }
 
 
@@ -237,7 +138,7 @@ export function clickUI (e:PointerEvent) {
             document.querySelector<HTMLElement>("body")!.addEventListener("pointermove", function (a) {
                 if (dragging) {
                     App.problemMap.Entities[divID].location = App.viewport.toWorld(new PIXI.Point(a.clientX - offset.x, a.clientY - offset.y));
-                    renderTripleLines()
+                    renderRelationships()
                 }
             })
             break;
@@ -247,12 +148,12 @@ export function clickUI (e:PointerEvent) {
             break;
         }
         case "deleteEntity":{
-            console.log("Delete " + (<HTMLElement>e.target).dataset.id);
+
             deleteEntity((<HTMLElement>e.target).dataset.id as unknown as number)
             break;
         }
         case "createAttribute":{
-            console.log("Create entity in " +(<HTMLElement>e.target).dataset.id)
+
             createAttribute((<HTMLElement>e.target).dataset.id as unknown as number, '4', "potato", "potatoes", "potata", "kg")
             break;
         }
@@ -274,11 +175,11 @@ export function clickUI (e:PointerEvent) {
                 dragging = false;
                 line.clear();
                 let att2 :HTMLElement = (<HTMLElement>f.target)
-                newTripleLine(getAttributeByID((<number><unknown>att1.dataset.id)), "right", getAttributeByID((<number><unknown>att2.dataset.id)), "right" )
-                console.log(releaseLine);
+                //newTripleLine(getAttributeByID((<number><unknown>att1.dataset.id)), "right", getAttributeByID((<number><unknown>att2.dataset.id)), "right" )
+                console.log("You need to create new relationships now loser")
                 document.querySelectorAll<HTMLElement>(".attribute").forEach(e => e.style.background = "initial")
                 document.querySelector<HTMLElement>("body").removeEventListener("pointerup", releaseLine)
-                renderTripleLines()
+                renderRelationships()
             }
 
           document.querySelector<HTMLElement>("body")!.addEventListener("pointerup", releaseLine);
@@ -310,7 +211,296 @@ export function editContent(e:Event){
 }
 
 export function stopEditContent(e:Event){
-    console.log("scream")
+
     let divToEdit = (<HTMLElement>e.target);
     divToEdit.contentEditable = "false";
+}
+
+export function createInitialDLine(id1: number, slot1:number, buffer1:number, id2: number, slot2: number, buffer2:number,  rel:Relationship) {
+
+    //Get DOM Elements for attributes
+    let firstAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + id1 + '"]')
+    let secondAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + id2 + '"]')
+
+    //Calculate left/rightedness of each attribute
+    let firstAttributeDirection = isOdd(slot1) ? -15 : 15;
+    let secondAttributeDirection = isOdd(slot2) ? -15 : 15;
+
+    //calculate the offset of attribute 1.
+    let att1OffsetY = firstAttribute.offsetHeight / 4 * (Math.round(slot1 / 2)) * App.viewport.scale.y; //scaling by viewport is required as css transform doesn't change the actual offsets
+    let att1OffsetX = firstAttributeDirection == 15 ? firstAttribute.offsetWidth * App.viewport.scale.x : 0;
+
+    //calculate the offset of attribute 2.
+    let att2OffsetY = secondAttribute.offsetHeight / 4 * (Math.round(slot2 / 2)) * App.viewport.scale.y; //scaling by viewport is required as css transform doesn't change the actual offsets
+    let att2OffsetX = secondAttributeDirection == 15 ? secondAttribute.offsetWidth * App.viewport.scale.x : 0;
+
+    let slot1Location = new PIXI.Point(firstAttribute.getBoundingClientRect().x + att1OffsetX, firstAttribute.getBoundingClientRect().y + att1OffsetY)
+    let slot2Location = new PIXI.Point(secondAttribute.getBoundingClientRect().x + att2OffsetX, secondAttribute.getBoundingClientRect().y + att2OffsetY)
+
+    let DLine = null;
+
+    if (isOdd(slot1) != isOdd(slot2)) {
+        let oddSlot = isOdd(slot1) ? firstAttribute : secondAttribute;
+        let evenSlot = isOdd(slot1) ? secondAttribute : firstAttribute;
+
+
+        if (oddSlot.getBoundingClientRect().x < evenSlot.getBoundingClientRect().x) {
+            //function for J Line
+            DLine = generateJLine(slot1Location, slot2Location, id1, id2);
+        } else {
+            //function for z Line
+            DLine = generateZLine(slot1Location, slot2Location, slot1, slot2);
+        }
+    } else {
+        //function for C line
+        DLine = generateCLine(slot1Location, slot2Location, slot1, slot2, id1, id2)
+    }
+
+
+    if (rel) {
+        if (rel.line.locked) {
+            if (rel.line.lineType == "C" || rel.line.lineType == "Z") {
+                DLine.keyPoint1.x = rel.line.keyPoint1.x
+                DLine.KeyPoint2.x = rel.line.KeyPoint2.x
+            } else {
+                DLine.keyPoint1.y = rel.line.keyPoint1.y
+                DLine.KeyPoint2.y = rel.line.KeyPoint2.y
+            }
+            DLine.locked = true;
+        }
+
+    }
+    return DLine;
+}
+
+export function generateCLine(slot1Location:PIXI.Point, slot2Location:PIXI.Point, slot1:number, slot2:number, id1:number, id2:number){
+
+    let firstAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + id1 + '"]')
+    let secondAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + id2 + '"]')
+
+    let mostLeft = Math.min(firstAttribute.getBoundingClientRect().left, secondAttribute.getBoundingClientRect().left)
+    let mostRight = Math.max(firstAttribute.getBoundingClientRect().right, secondAttribute.getBoundingClientRect().right)
+
+    //let distance = slot1Location.x <= slot2Location.x? -30 : slot2Location.x-slot1Location.x - 30;
+    let keyx = isOdd(slot1)? mostLeft-(30*App.viewport.scale.x) : mostRight+(30*App.viewport.scale.x) ;
+
+    let KeyPoint1 = App.viewport.toWorld(new PIXI.Point(keyx, slot1Location.y));
+    let KeyPoint2 = App.viewport.toWorld(new PIXI.Point(keyx, slot2Location.y));
+    let CLine:DLine = {
+        lineType: "C",
+        keyPoint1: KeyPoint1,
+        KeyPoint2: KeyPoint2,
+        bufferLeft: isOdd(slot1)? -30 : 0,
+        bufferRight: isOdd(slot1)? 30 : 0,
+        locked: false,
+
+    }
+   return CLine;
+}
+
+export function generateZLine(slot1Location:PIXI.Point, slot2Location:PIXI.Point, slot1:number, slot2:number){
+
+    let xSpan = slot1Location.x - slot2Location.x;
+    let keyx = slot2Location.x + (xSpan/2);
+    let KeyPoint1 = App.viewport.toWorld(new PIXI.Point(keyx, slot1Location.y));
+    let KeyPoint2 = App.viewport.toWorld(new PIXI.Point(keyx, slot2Location.y));
+    let ZLine:DLine = {
+        lineType: "Z",
+        keyPoint1: KeyPoint1,
+        KeyPoint2: KeyPoint2,
+        bufferLeft: 0,
+        bufferRight: 0,
+        locked: false,
+
+    }
+    return ZLine;
+}
+
+export function generateJLine(slot1Location:PIXI.Point, slot2Location:PIXI.Point, id1:number, id2:number) {
+    let firstAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + id1 + '"]')
+    let secondAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + id2 + '"]')
+
+    let firstEntity :HTMLElement = firstAttribute.parentElement.parentElement;
+    let secondEntity :HTMLElement = secondAttribute.parentElement.parentElement;
+
+
+    //get screen coordinates of entities
+    let ent1PositionY = firstEntity.getBoundingClientRect().bottom;
+    let ent2PositionY = secondEntity.getBoundingClientRect().y;
+
+    let xSpan = slot2Location.x - slot1Location.x;
+    let ySpan = slot1Location.y - slot2Location.y;
+    //let middle = slot2Location.y + (ySpan/2);
+
+    let y = (slot2Location.y+((firstEntity.getBoundingClientRect().y - secondEntity.getBoundingClientRect().bottom)/2)+secondEntity.getBoundingClientRect().bottom - slot2Location.y);
+
+    if(firstEntity.getBoundingClientRect().bottom <= secondEntity.getBoundingClientRect().y) {
+        y = (slot1Location.y+((secondEntity.getBoundingClientRect().y - firstEntity.getBoundingClientRect().bottom)/2)+firstEntity.getBoundingClientRect().bottom - slot1Location.y);
+    }
+    if(firstEntity.getBoundingClientRect().bottom >= ent2PositionY && firstEntity.getBoundingClientRect().y <= secondEntity.getBoundingClientRect().bottom) {
+        y = Math.max(secondEntity.getBoundingClientRect().bottom,firstEntity.getBoundingClientRect().bottom )+ (15*App.viewport.scale.x);
+    }
+
+
+    let bufferLeft = -30*App.viewport.scale.x;
+    let bufferRight = 30*App.viewport.scale.x;
+    //let KeyPoint1 = App.viewport.toWorld(new PIXI.Point(slot1Location.x+bufferLeft, slot1Location.y+middle+potato));
+    let KeyPoint1 = App.viewport.toWorld(new PIXI.Point(slot1Location.x+bufferLeft, y));
+    let KeyPoint2 = App.viewport.toWorld(new PIXI.Point(slot2Location.x+bufferRight, y));
+    let JLine:DLine = {
+        lineType: "J",
+        keyPoint1: KeyPoint1,
+        KeyPoint2: KeyPoint2,
+        bufferLeft: bufferLeft,
+        bufferRight: bufferRight,
+        locked: false,
+
+    }
+    return JLine;
+}
+
+export function createRelationship(name:string, desc:string, nature:string, id1:number, id2:number, causeSlot:number, effectSlot:number ){
+    let DLine = createInitialDLine(id1, causeSlot, 0, id2, effectSlot, 0, null);
+    App.problemMap.Relationships.push({
+        id: App.problemMap.relationshipCounter.next().value,
+        name: name,
+        description: desc,
+        nature: nature,
+        cause: id1,
+        effect: id2,
+        causeSlot: causeSlot,
+        effectSlot: effectSlot,
+        line: DLine,
+        graphic: new PIXI.Graphics(),
+        Handle: new PIXI.Graphics(),
+    })
+}
+
+export function renderRelationships(){
+    const lineStyleOptions = {
+        width: 10,
+        color:0xCE91FF,
+        cap: LINE_CAP.ROUND
+    }
+
+    App.problemMap.Relationships.forEach(rel => {
+
+        if(App.moveLine == false) {
+            rel.line = createInitialDLine(rel.cause, rel.causeSlot, 0, rel.effect, rel.effectSlot, 0, rel)
+        }
+        //Get DOM Elements for attributes
+        let firstAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + rel.cause + '"]')
+        let secondAttribute = document.querySelector<HTMLElement>('.attribute[data-id="' + rel.effect+ '"]')
+
+        //Calculate left/rightedness of each attribute
+        let firstAttributeDirection = isOdd(rel.causeSlot) ? -15 : 15;
+        let secondAttributeDirection = isOdd(rel.effectSlot) ? -15 : 15;
+
+        //calculate the offset of attribute 1.
+        let att1OffsetY = firstAttribute.offsetHeight / 4 * (Math.round(rel.causeSlot/2)) * App.viewport.scale.y; //scaling by viewport is required as css transform doesn't change the actual offsets
+        let att1OffsetX = firstAttributeDirection == 15 ? firstAttribute.offsetWidth * App.viewport.scale.x : 0;
+        //calculate the offset of attribute 2.
+        let att2OffsetY = secondAttribute.offsetHeight / 4 * (Math.round(rel.effectSlot/2)) * App.viewport.scale.y; //scaling by viewport is required as css transform doesn't change the actual offsets
+        let att2OffsetX = secondAttributeDirection == 15 ? secondAttribute.offsetWidth * App.viewport.scale.x : 0;
+
+        let slot1Location = new PIXI.Point(firstAttribute.getBoundingClientRect().x + att1OffsetX, firstAttribute.getBoundingClientRect().y + att1OffsetY)
+        let slot2Location = new PIXI.Point(secondAttribute.getBoundingClientRect().x + att2OffsetX, secondAttribute.getBoundingClientRect().y + att2OffsetY)
+        let slot1LocationWorld = App.viewport.toWorld(slot1Location);
+        let slot2LocationWorld = App.viewport.toWorld(slot2Location);
+
+        rel.graphic.clear();
+
+        rel.graphic.lineStyle(lineStyleOptions);
+        if(rel.line.lineType == "C" ) {
+            rel.graphic.moveTo(slot1LocationWorld.x, slot1LocationWorld.y)
+            rel.graphic.lineTo(rel.line.keyPoint1.x, rel.line.keyPoint1.y);
+            rel.graphic.lineTo(rel.line.KeyPoint2.x, rel.line.KeyPoint2.y);
+            rel.graphic.lineTo(slot2LocationWorld.x, slot2LocationWorld.y)
+        }
+        if(rel.line.lineType == "J"){
+            rel.graphic.moveTo(slot1LocationWorld.x, slot1LocationWorld.y)
+            rel.graphic.lineTo(rel.line.keyPoint1.x ,slot1LocationWorld.y);
+            rel.graphic.lineTo(rel.line.keyPoint1.x, rel.line.keyPoint1.y);
+            rel.graphic.lineTo(rel.line.KeyPoint2.x, rel.line.KeyPoint2.y);
+            rel.graphic.lineTo(rel.line.KeyPoint2.x,slot2LocationWorld.y);
+            rel.graphic.lineTo(slot2LocationWorld.x, slot2LocationWorld.y)
+        }
+        if(rel.line.lineType == "Z"){
+            rel.graphic.moveTo(slot1LocationWorld.x, slot1LocationWorld.y)
+            rel.graphic.lineTo(rel.line.keyPoint1.x, rel.line.keyPoint1.y);
+            rel.graphic.lineTo(rel.line.KeyPoint2.x, rel.line.KeyPoint2.y);
+            rel.graphic.lineTo(slot2LocationWorld.x, slot2LocationWorld.y)
+        }
+
+        App.viewport.addChild(rel.graphic);
+
+
+        rel.Handle.clear();
+        rel.Handle.beginFill(0xffff55)
+
+        //create horizontal line
+        rel.Handle.drawRect(rel.line.keyPoint1.x-5, rel.line.KeyPoint2.y-5, (rel.line.KeyPoint2.x - rel.line.keyPoint1.x +5), 20);
+
+        //create vertical line
+        rel.Handle.drawRect(rel.line.keyPoint1.x-5, rel.line.keyPoint1.y-5, 20 , (rel.line.KeyPoint2.y-rel.line.keyPoint1.y));
+
+        //create other vertical lines
+        rel.Handle.drawRect(rel.line.KeyPoint2.x-5, rel.line.KeyPoint2.y-5, 20 , (rel.line.keyPoint1.y-rel.line.KeyPoint2.y));
+
+        rel.Handle.endFill();
+        rel.Handle.alpha = 0;
+        rel.Handle.eventMode = 'static';
+        rel.Handle.on("pointerdown", lineClicked);
+        rel.Handle.on("pointercancel", lineRelease);
+        rel.Handle.on("rightclick", lineUnlock);
+        rel.Handle.on("pointerup", lineRelease);
+        rel.Handle.cursor = 'pointer';
+        rel.Handle.name = rel.id.toString();
+        rel.Handle.interactiveChildren = false
+
+        App.viewport.addChild(rel.Handle);
+    })
+}
+
+function lineClicked(e:Event){
+    let id:number = parseInt(this.name)
+    let rel = getRelationshipById(id);
+    rel.line.locked = true;
+    App.moveLine = true;
+    App.moveLineTarget = rel;
+
+}
+
+function lineUnlock(e:Event){
+    e.preventDefault();
+    let id:number = parseInt(this.name)
+    let rel = getRelationshipById(id);
+    rel.line.locked = false;
+
+
+}
+
+export function lineRelease(e:Event){
+    App.viewport.pause = false;
+    let id:number = parseInt(this.name)
+    let rel = getRelationshipById(id);
+    //rel.line.locked = true;
+    App.moveLine = false;
+    App.moveLineTarget = null;
+
+}
+
+export function lineMove(e){
+    if(App.moveLine){
+        App.viewport.pause = true
+        if(App.moveLineTarget.line.lineType == "C" || App.moveLineTarget.line.lineType == "Z"){
+            App.moveLineTarget.line.keyPoint1.x = App.viewport.toWorld(e.clientX, 0).x;
+            App.moveLineTarget.line.KeyPoint2.x = App.viewport.toWorld(e.clientX, 0).x ;
+
+        }
+        else{
+            App.moveLineTarget.line.keyPoint1.y = App.viewport.toWorld(0, e.clientY).y;
+            App.moveLineTarget.line.KeyPoint2.y = App.viewport.toWorld(0, e.clientY).y;
+        }
+    }
 }
