@@ -168,15 +168,32 @@ export function clickUI (e:PointerEvent) {
             let dragging = true;
             let initialLocation: PIXI.Point = App.viewport.toWorld(new PIXI.Point(e.clientX, e.clientY));
             let line = new PIXI.Graphics;
+
             let att1:HTMLElement = (<HTMLElement>e.target)
 
+
+
             //This code was designed to make josh cry.
-            const releaseLine = (f:Event) => {
+            const releaseLine = (f:PointerEvent) => {
                 dragging = false;
                 line.clear();
                 let att2 :HTMLElement = (<HTMLElement>f.target)
+                let att3 =att2.parentElement;
+
+                let att2ysector = att3.offsetHeight / 4;
+                let mouseY = f.clientY - att3.getBoundingClientRect().top;
+                let mouseX = f.clientX - att3.getBoundingClientRect().left
+                let slotY = Math.round(mouseY/att2ysector/App.viewport.scale.y);
+                let slotX = mouseX/App.viewport.scale.x;
+                if(slotY == 0) {
+                    slotY = 1;
+                }
+                let slot = slotX < att3.offsetWidth/2 ? slotY * 2-1 : slotY *2 ;
+
+
+
                 //newTripleLine(getAttributeByID((<number><unknown>att1.dataset.id)), "right", getAttributeByID((<number><unknown>att2.dataset.id)), "right" )
-                createRelationship("lol", "lol", "lol", parseInt(att1.dataset.id), parseInt(att2.dataset.id), 1, 1)
+                createRelationship("lol", "lol", "lol", parseInt(att1.dataset.id), parseInt(att2.dataset.id), getRandomInt(6), slot)
                 document.querySelectorAll<HTMLElement>(".attribute").forEach(e => e.style.background = "initial")
                 document.querySelector<HTMLElement>("body").removeEventListener("pointerup", releaseLine)
                 renderRelationships()
@@ -490,8 +507,13 @@ export function lineRelease(e:Event){
 
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
+
 export function lineMove(e){
     if(App.moveLine){
+
         App.viewport.pause = true
         if(App.moveLineTarget.line.lineType == "C" || App.moveLineTarget.line.lineType == "Z"){
             App.moveLineTarget.line.keyPoint1.x = App.viewport.toWorld(e.clientX, 0).x;
@@ -502,5 +524,6 @@ export function lineMove(e){
             App.moveLineTarget.line.keyPoint1.y = App.viewport.toWorld(0, e.clientY).y;
             App.moveLineTarget.line.KeyPoint2.y = App.viewport.toWorld(0, e.clientY).y;
         }
+        renderRelationships();
     }
 }

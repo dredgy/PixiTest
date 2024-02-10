@@ -96,10 +96,10 @@ const createSampleEntities = () => {
     App.problemMap.Entities[2].location.x += 500;
     App.problemMap.Entities[2].location.y += 500;
 
-    createRelationship("first", "the first relationship", "cause", 2, 4, 1, 2);
-    createRelationship("first", "the first relationship", "cause", 2, 8, 1, 4);
-    createRelationship("first", "the first relationship", "cause", 5, 2, 1, 3);
-    createRelationship("first", "the first relationship", "cause", 3, 11, 2, 2);
+    createRelationship("first", "the first relationship", "cause", 1, 4, 7, 8);
+    createRelationship("first", "the first relationship", "cause", 2, 8, 7, 8);
+    createRelationship("first", "the first relationship", "cause", 5, 2, 7, 8);
+    createRelationship("first", "the first relationship", "cause", 3, 11, 7, 8);
 
 
 }
@@ -111,12 +111,14 @@ const main = () => {
     setupEvents()
     setupPage()
     createSampleEntities()
-
-
+    renderRelationships();
+    let k = 0;
     App.PixiApp.ticker.add(n => {
         renderEntities();
-
-        renderRelationships();
+        k++
+        if(k==5) {
+            renderRelationships();
+        }
     });
 }
 
