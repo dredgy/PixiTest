@@ -14,7 +14,14 @@
     <div id="app" ></div>
     <script type="module" src="/src/main.ts"></script>
 
-
+    <dialog class="prompt">
+      <div class="promptHeader"></div>
+      <div class="promptContent"></div>
+      <div class="promptToolbar">
+        <div class="cancelPrompt">Cancel</div>
+        <div class="confirmPrompt">Confirm</div>
+      </div>
+    </dialog>
 
 
 
@@ -38,9 +45,64 @@
       <div class="attributeValue"></div>
       <div class="attributeDelete">X</div>
       <div class="attributeLink">@</div>
+      <div class="attributeEdit">E</div>
       <div class="attributeBar"><progress value="32" max="100"> 32% </progress></div>
     </div>
   </template>
 
+
+
+  <template id="relationshipPrompt">
+    <form id="relationshipForm">
+      <div>Create a relationship between two attributes</div>
+      <div>
+      <label for="relName">Name:</label>
+      <input type="text" id="relName" name="name" required>
+      </div><div>
+      <label for="relDescription">Description:</label>
+      <textarea id="relDescription" name="description" required></textarea>
+      </div><div>
+      <label for="relNature">Nature:</label>
+      <input type="text" id="relNature" name="nature" required>
+      </div>
+  <details>
+    <summary>Advanced</summary>
+      <div>
+      <label for="relCause">Cause:</label>
+      <input type="number" id="relCause" name="cause" required>
+        </div><div>
+      <label for="relEffect">Effect:</label>
+      <input type="number" id="relEffect" name="effect" required>
+      </div><div>
+      <label for="relCauseSlot">Cause Slot:</label>
+      <input type="number" id="relCauseSlot" name="causeSlot" required>
+      </div><div>
+      <label for="relEffectSlot">Effect Slot:</label>
+      <input type="number" id="relEffectSlot" name="effectSlot" required>
+      </div>
+  </details>
+    </form>
+  </template>
+
+<template id="editAttributePrompt">
+  <form id="attributeForm">
+  <div>
+    <label for="attName">Name:</label>
+    <input type="text" id="attName" name="name" required>
+  </div><div>
+    <label for="attDescription">Description:</label>
+    <textarea id="attDescription" name="description" required></textarea>
+  </div><div>
+    <label for="attType">Type:</label>
+    <input type="text" id="attType" name="type" required>
+  </div><div>
+    <label for="attUnits">Units:</label>
+    <input type="text" id="attUnits" name="units" required>
+  </div><div>
+    <label for="attValue">Value:</label>
+    <input type="text" id="attValue" name="value" required>
+    </div>
+  </form>
+</template>
 
 </html>

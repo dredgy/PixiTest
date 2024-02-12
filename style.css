@@ -132,8 +132,8 @@ html, body {margin: 0; height: 100%; overflow: hidden}
 
 .attributeDelete{
   position: absolute;
-  right: 5px;
-  top: 5px;
+  right: 0px;
+  top: 0px;
   width: 15px;
   height: 15px;
   color: white;
@@ -144,13 +144,27 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   text-align: center;
 }
 .attributeLink{
-  right: 5px;
-  top: 25px;
+  right: 0px;
+  top: 15px;
   position: absolute;
   width: 15px;
   height: 15px;
   color: white;
   background: #81DB6B;
+  cursor: pointer;
+  font-size: 10px;
+  line-height: 15px;
+  text-align: center;
+}
+
+.attributeEdit{
+  position: absolute;
+  right: 0px;
+  top: 30px;
+  width: 15px;
+  height: 15px;
+  color: white;
+  background: #FFD480;
   cursor: pointer;
   font-size: 10px;
   line-height: 15px;
@@ -238,3 +252,84 @@ html, body {margin: 0; height: 100%; overflow: hidden}
   background: #DCDCDC;
 }
 
+.prompt {
+  position: absolute;
+  left: 30%;
+  top: 30%;
+  min-width: 40%;
+  max-width: 40%;
+  min-height: 250px;
+
+  background: #F6F6F6;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  padding-bottom: 5px;
+  border-color: #D4D4D4;
+  border-style: solid;
+  border: 2px;
+  transform-origin: top left;
+  pointer-events: auto;
+  padding-bottom: 10px;
+  z-index:5;
+}
+
+.promptContent form{
+  display: flex;
+  flex-direction: column;
+  min-height: 250px;
+  padding: 25px;
+}
+
+.promptContent form details{
+  diplay: flex;
+  flex-direction: row;
+}
+
+.promptHeader{
+  cursor:pointer;
+  background: #d4d4d4;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+  padding: 5px;
+  font-family:Tahoma,Verdana,Segoe,sans-serif;
+  font-size: 16px;
+  font-weight: bold;
+  color: #5C5C5C;
+}
+
+.promptToolbar{
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  /*justify-content: space-evenly;*/
+  /*padding-top: 10px;*/
+}
+
+.cancelPrompt{
+  flex: 1;
+  color: white;
+  background: #FF8282;
+  cursor: pointer;
+  min-width: 30%;
+  padding: 5px;
+  text-align: center;
+  font-family:Tahoma,Verdana,Segoe,sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  /*border-radius: 6px;*/
+  line-height: 100%;
+}
+.confirmPrompt{
+  flex: 1;
+  color: white;
+  background: #81DB6B;
+  cursor: pointer;
+  min-width: 30%;
+  padding: 5px;
+  text-align: center;
+  font-family:Tahoma,Verdana,Segoe,sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  /*border-radius: 6px;*/
+  height: 100%;
+}

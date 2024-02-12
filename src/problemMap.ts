@@ -74,6 +74,7 @@ export function createAttribute(entity_id:number, name:string, description: stri
     clone.querySelector<HTMLElement>(".attributeTitle")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".attributeValue")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".attributeBar")!.dataset.id = newID.toString();
+    clone.querySelector<HTMLElement>(".attributeEdit")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".attributeDelete")!.dataset.id = newID.toString();
     clone.querySelector<HTMLElement>(".attributeLink")!.dataset.id = newID.toString();
 
@@ -83,6 +84,19 @@ export function createAttribute(entity_id:number, name:string, description: stri
 
     //appendes template as a child of container in the DOM
     container!.appendChild(clone);
+}
+
+export function editAttribute(id:number, name:string, description:string, type:string, value:string, units:string){
+    let attribute = getAttributeByID(id)
+    attribute.name = name;
+    attribute.description = description;
+    attribute.type = type;
+    attribute.value = value;
+    attribute.units = units;
+
+    document.querySelector(".attributeTitle[data-id='"+id+"']")!.innerHTML = name;
+    document.querySelector(".attributeValue[data-id='"+id+"']")!.innerHTML = value;
+
 }
 
 export function renderEntities() {
@@ -162,6 +176,27 @@ export function clickUI (e:PointerEvent) {
             break;
         }
 
+        case "attributeEdit":{
+            generateEditAttributePrompt(parseInt((<HTMLElement>e.target).dataset.id))
+            break;
+        }
+        case "cancelPrompt":{
+            let prompt:HTMLDialogElement = document.querySelector(".prompt");
+            prompt.close()
+            break;
+        }
+        case "confirmPrompt":{
+            let confirmPrompt:HTMLDialogElement = document.querySelector(".confirmPrompt");
+            if(confirmPrompt.dataset.function == "relationshipPromptSubmitted"){
+                relationshipPromptSubmitted();
+            }
+            if(confirmPrompt.dataset.function == "editAttributePromptSubmitted"){
+                editAttributeSubmitted()
+            }
+
+            break;
+        }
+
         case "attributeLink":{
 
             e.preventDefault()
@@ -193,7 +228,8 @@ export function clickUI (e:PointerEvent) {
 
 
                 //newTripleLine(getAttributeByID((<number><unknown>att1.dataset.id)), "right", getAttributeByID((<number><unknown>att2.dataset.id)), "right" )
-                createRelationship("lol", "lol", "lol", parseInt(att1.dataset.id), parseInt(att2.dataset.id), getRandomInt(6), slot)
+                generateRelationshipPrompt( parseInt(att1.dataset.id), parseInt(att2.dataset.id), getRandomInt(6), slot)
+
                 document.querySelectorAll<HTMLElement>(".attribute").forEach(e => e.style.background = "initial")
                 document.querySelector<HTMLElement>("body").removeEventListener("pointerup", releaseLine)
                 renderRelationships()
@@ -493,8 +529,6 @@ function lineUnlock(e:Event){
     let id:number = parseInt(this.name)
     let rel = getRelationshipById(id);
     rel.line.locked = false;
-
-
 }
 
 export function lineRelease(e:Event){
@@ -505,6 +539,7 @@ export function lineRelease(e:Event){
     App.moveLine = false;
     App.moveLineTarget = null;
 
+    //showPrompt("lol", document.querySelector(".deleteEntity"), "getRandomInt")
 }
 
 function getRandomInt(max) {
@@ -526,4 +561,71 @@ export function lineMove(e){
         }
         renderRelationships();
     }
+}
+
+export function showPrompt(title:string, content:HTMLElement, confirmationFunction:string){
+    let prompt:HTMLDialogElement = document.querySelector(".prompt");
+    let promptHeader = document.querySelector(".promptHeader");
+    let confirmPrompt:HTMLElement =  document.querySelector(".confirmPrompt");
+    let promptContent = prompt.querySelector(".promptContent");
+    confirmPrompt.dataset.function = confirmationFunction;
+    promptContent.replaceChildren(content)
+    promptHeader.innerHTML=title;
+    prompt.showModal();
+}
+
+export function generateRelationshipPrompt( id1:number, id2:number, causeSlot:number, effectSlot:number) {
+    const template = document.getElementById("relationshipPrompt") as HTMLTemplateElement;
+    let clone = template.content.cloneNode(true) as HTMLElement;
+    clone.querySelector<HTMLInputElement>("#relCause").value = id1.toString();
+    clone.querySelector<HTMLInputElement>("#relEffect").value = id2.toString();
+    clone.querySelector<HTMLInputElement>("#relCauseSlot").value = causeSlot.toString();
+    clone.querySelector<HTMLInputElement>("#relEffectSlot").value = effectSlot.toString();
+    showPrompt("Create Relationship", clone, "relationshipPromptSubmitted")
+}
+
+export function generateEditAttributePrompt( id1:number) {
+    const template = document.getElementById("editAttributePrompt") as HTMLTemplateElement;
+    let clone = template.content.cloneNode(true) as HTMLElement;
+    let attribute = getAttributeByID(id1);
+    clone.querySelector<HTMLInputElement>("#attName").value = attribute.name;
+    clone.querySelector<HTMLInputElement>("#attDescription").value = attribute.description;
+    clone.querySelector<HTMLInputElement>("#attType").value = attribute.type;
+    clone.querySelector<HTMLInputElement>("#attUnits").value = attribute.units;
+    clone.querySelector<HTMLInputElement>("#attValue").value = attribute.value;
+    clone.querySelector<HTMLElement>("#attributeForm").dataset.id = id1.toString();
+    showPrompt("Edit: "+id1, clone, "editAttributePromptSubmitted")
+}
+
+export function editAttributeSubmitted(){
+    const attributeFom:HTMLElement = document.querySelector("#attributeForm")
+    // Access the form values
+    const name = (document.getElementById('attName') as HTMLInputElement).value;
+    const description = (document.getElementById('attDescription') as HTMLTextAreaElement).value;
+    const type = (document.getElementById('attType') as HTMLInputElement).value;
+    const units = (document.getElementById('attUnits') as HTMLInputElement).value;
+    const value = (document.getElementById('attValue') as HTMLInputElement).value;
+    let id = parseInt(attributeFom.dataset.id);
+
+    editAttribute(id, name, description, type, value, units);
+
+    document.querySelector<HTMLDialogElement>(".prompt").close();
+
+}
+
+export function relationshipPromptSubmitted(){
+
+        // Access the form values
+        const name = (document.getElementById('relName') as HTMLInputElement).value;
+        const description = (document.getElementById('relDescription') as HTMLTextAreaElement).value;
+        const nature = (document.getElementById('relNature') as HTMLInputElement).value;
+        const cause = parseInt((document.getElementById('relCause') as HTMLInputElement).value, 10);
+        const effect = parseInt((document.getElementById('relEffect') as HTMLInputElement).value, 10);
+        const causeSlot = parseInt((document.getElementById('relCauseSlot') as HTMLInputElement).value, 10);
+        const effectSlot = parseInt((document.getElementById('relEffectSlot') as HTMLInputElement).value, 10);
+
+        console.log( name, description, nature, cause, effect, causeSlot, effectSlot);
+        createRelationship(name,description,nature,cause,effect,causeSlot,effectSlot)
+        document.querySelector<HTMLDialogElement>(".prompt").close();
+        renderRelationships();
 }
