@@ -1,8 +1,10 @@
 import * as PIXI from "pixi.js";
-import {Graphics, LINE_CAP, Point} from "pixi.js";
+import {Graphics, LINE_CAP, LINE_JOIN, Point} from "pixi.js";
 import ElementWrapper from "./element-wrapper.js";
 import {App} from "./main.ts";
-
+import '@pixi/math-extras';
+import {lineIntersection} from "@pixi/math-extras";
+import {DropShadowFilter} from '@pixi/filter-drop-shadow';
 
 
 //createEntity creates a new entity in problemMap, instantiates it in the DOM and isntantiates a
@@ -387,6 +389,7 @@ export function generateJLine(slot1Location:PIXI.Point, slot2Location:PIXI.Point
 
     let y = (slot2Location.y+((firstEntity.getBoundingClientRect().y - secondEntity.getBoundingClientRect().bottom)/2)+secondEntity.getBoundingClientRect().bottom - slot2Location.y);
 
+
     if(firstEntity.getBoundingClientRect().bottom <= secondEntity.getBoundingClientRect().y) {
         y = (slot1Location.y+((secondEntity.getBoundingClientRect().y - firstEntity.getBoundingClientRect().bottom)/2)+firstEntity.getBoundingClientRect().bottom - slot1Location.y);
     }
@@ -433,8 +436,10 @@ export function renderRelationships(){
     const lineStyleOptions = {
         width: 10,
         color:0xCE91FF,
-        cap: LINE_CAP.ROUND
+        cap: LINE_CAP.SQUARE,
+        join: LINE_JOIN.ROUND
     }
+
 
     App.problemMap.Relationships.forEach(rel => {
 
@@ -467,6 +472,8 @@ export function renderRelationships(){
         if(rel.line.lineType == "C" ) {
             rel.graphic.moveTo(slot1LocationWorld.x, slot1LocationWorld.y)
             rel.graphic.lineTo(rel.line.keyPoint1.x, rel.line.keyPoint1.y);
+            //breakLine(rel.graphic, rel.line.keyPoint1.x, rel.line.keyPoint1.y, rel.line.KeyPoint2.x, rel.line.KeyPoint2.y, rel.id)
+            //detectIntersections(new PIXI.Point(rel.line.keyPoint1.x, rel.line.keyPoint1.y), new PIXI.Point(rel.line.KeyPoint2.x, rel.line.KeyPoint2.y), rel.id)
             rel.graphic.lineTo(rel.line.KeyPoint2.x, rel.line.KeyPoint2.y);
             rel.graphic.lineTo(slot2LocationWorld.x, slot2LocationWorld.y)
         }
@@ -606,11 +613,9 @@ export function editAttributeSubmitted(){
     const units = (document.getElementById('attUnits') as HTMLInputElement).value;
     const value = (document.getElementById('attValue') as HTMLInputElement).value;
     let id = parseInt(attributeFom.dataset.id);
-
     editAttribute(id, name, description, type, value, units);
-
     document.querySelector<HTMLDialogElement>(".prompt").close();
-
+    console.log(App.problemMap);
 }
 
 export function relationshipPromptSubmitted(){
@@ -628,4 +633,89 @@ export function relationshipPromptSubmitted(){
         createRelationship(name,description,nature,cause,effect,causeSlot,effectSlot)
         document.querySelector<HTMLDialogElement>(".prompt").close();
         renderRelationships();
+}
+
+
+export function generateEditEntityPrompt( id1:number) {
+    const template = document.getElementById("editEntityPrompt") as HTMLTemplateElement;
+    let clone = template.content.cloneNode(true) as HTMLElement;
+    let attribute = getAttributeByID(id1);
+    clone.querySelector<HTMLInputElement>("#attName").value = attribute.name;
+    clone.querySelector<HTMLInputElement>("#attDescription").value = attribute.description;
+    clone.querySelector<HTMLInputElement>("#attType").value = attribute.type;
+    clone.querySelector<HTMLInputElement>("#attUnits").value = attribute.units;
+    clone.querySelector<HTMLInputElement>("#attValue").value = attribute.value;
+    clone.querySelector<HTMLElement>("#attributeForm").dataset.id = id1.toString();
+    showPrompt("Edit: "+id1, clone, "editAttributePromptSubmitted")
+}
+
+export function editEntitySubmitted(){
+    const attributeFom:HTMLElement = document.querySelector("#attributeForm")
+    // Access the form values
+    const name = (document.getElementById('attName') as HTMLInputElement).value;
+    const description = (document.getElementById('attDescription') as HTMLTextAreaElement).value;
+    const type = (document.getElementById('attType') as HTMLInputElement).value;
+    const units = (document.getElementById('attUnits') as HTMLInputElement).value;
+    const value = (document.getElementById('attValue') as HTMLInputElement).value;
+    let id = parseInt(attributeFom.dataset.id);
+    editAttribute(id, name, description, type, value, units);
+    document.querySelector<HTMLDialogElement>(".prompt").close();
+}
+export function breakLine(graphic:PIXI.Graphics, currentX:number, currentY:number, targetX:number, targetY:number, id:number){
+    let l = detectIntersections(new PIXI.Point(currentX, currentY), new PIXI.Point(targetX, targetY),id)
+    if(l == null){
+        graphic.lineTo(targetX, targetY)
+    }else{
+        attemptLine(graphic, currentX, currentY, targetX, targetY, id)
+    }
+}
+
+export function attemptLine(graphics:PIXI.Graphics, currentX:number, currentY:number, targetX:number, targetY:number, id:number){
+
+    let l = detectIntersections(new PIXI.Point(currentX, currentY), new PIXI.Point(targetX, targetY),id)
+    //console.log(l)
+    if(l != null) {
+        graphics.lineTo(l[0].x, l[0].y - 20)
+        graphics.moveTo(l[0].x, l[0].y + 20)
+        attemptLine(graphics, currentX, l[0].y+40, targetX, targetY, id)
+        l = null;
+    }else{
+        console.log(l+" and ", new PIXI.Point(currentX, currentY), new PIXI.Point(targetX, targetY))
+        graphics.lineTo(targetX, targetY)
+    }
+}
+
+export function detectIntersections(point1:PIXI.Point, point2:PIXI.Point, id:number){
+    let result:PIXI.Point[] = [];
+        for (let rel1 of App.problemMap.Relationships) {
+            if(rel1.id != id) {console.log("IDs ", rel1.id, " ", id)
+               result.push( intersects(point1.x, point1.y, point2.x, point2.y, rel1.line.keyPoint1.x, rel1.line.keyPoint1.y, rel1.line.KeyPoint2.x, rel1.line.KeyPoint2.y))
+                console.log(result)
+
+            }
+            else{
+                console.log("notYo")
+            }
+        }
+        console.log(result)
+    return result;
+}
+
+function intersects(a, b, c, d, p, q, r, s) {
+    var det, gamma, lambda;
+    det = (c - a) * (s - q) - (r - p) * (d - b);
+    if (det === 0) {
+        return null; // Lines are parallel, no intersection
+    } else {
+        lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+        gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+        if (0 < lambda && lambda < 1 && 0 < gamma && gamma < 1) {
+            // Calculate intersection point
+            var x = a + lambda * (c - a);
+            var y = b + lambda * (d - b);
+            return new PIXI.Point(x,y); // Return the intersection point's coordinates
+        } else {
+            return null; // No intersection within the segments
+        }
+    }
 }

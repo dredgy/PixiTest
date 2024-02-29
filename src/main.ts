@@ -6,7 +6,7 @@ import {
     lineMove,
     stopEditContent,
     renderRelationships,
-    createRelationship, lineRelease
+    createRelationship, lineRelease, detectIntersections
 } from "./problemMap.ts";
 import * as PIXI from "pixi.js";
 import {Viewport} from "pixi-viewport";
@@ -96,10 +96,8 @@ const createSampleEntities = () => {
     App.problemMap.Entities[2].location.x += 500;
     App.problemMap.Entities[2].location.y += 500;
 
-    createRelationship("first", "the first relationship", "cause", 1, 4, 7, 8);
-    createRelationship("first", "the first relationship", "cause", 2, 8, 7, 8);
-    createRelationship("first", "the first relationship", "cause", 5, 2, 7, 8);
-    createRelationship("first", "the first relationship", "cause", 3, 11, 7, 8);
+    createRelationship("first", "the first relationship", "cause", 1, 6, 7, 8);
+
 
 
 }
@@ -112,6 +110,9 @@ const main = () => {
     setupPage()
     createSampleEntities()
     renderRelationships();
+
+
+
     let k = 0;
     App.PixiApp.ticker.add(n => {
         renderEntities();

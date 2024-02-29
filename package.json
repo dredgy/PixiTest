@@ -13,6 +13,8 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
+    "@pixi/filter-drop-shadow": "^5.2.0",
+    "@pixi/math-extras": "^7.4.0",
     "pixi-viewport": "^5.0.2",
     "pixi.js": "^7.4.0"
   }
