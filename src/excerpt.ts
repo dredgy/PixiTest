@@ -1,3 +1,4 @@
+/*
 export function createInitialDLine(CoOrd1X:number, CoOrd1Y:number, CoOrd2X: number, CoOrd2Y:number, entity1:HTMLElement, entity2:HTMLElement) {
 
     //identify which side of the entity the line is connecting too.
@@ -98,4 +99,4 @@ export function generateJLine(CoOrd1X:number, CoOrd1Y:number, CoOrd2X: number, C
     response.push([CoOrd2X, CoOrd2Y]);
 
     return response
-}
+}*/
